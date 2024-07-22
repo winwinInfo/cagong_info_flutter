@@ -1,5 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import 'package:provider/provider.dart';
 import '../services/cafe_service.dart';
 import '../models/cafe.dart';
@@ -10,8 +11,7 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  GoogleMapController? _mapController;
-  Set<Marker> _markers = {};
+  late WebViewController _webViewController;
 
   @override
   void initState() {
@@ -22,22 +22,16 @@ class _HomeViewState extends State<HomeView> {
     });
   }
 
-  void _onMapCreated(GoogleMapController controller) {
-    _mapController = controller;
-    setState(() {
-      _markers.addAll(_createMarkers());
-    });
+  void _onWebViewCreated(WebViewController webViewController) {
+    _webViewController = webViewController;
+    _loadCafes();
   }
 
-  Set<Marker> _createMarkers() {
+  void _loadCafes() async {
     final cafeService = Provider.of<CafeService>(context, listen: false);
-    return cafeService.cafes.map((cafe) {
-      return Marker(
-        markerId: MarkerId(cafe.name),
-        position: LatLng(cafe.latitude, cafe.longitude),
-        infoWindow: InfoWindow(title: cafe.name, snippet: cafe.address),
-      );
-    }).toSet();
+    final cafesJson =
+        jsonEncode(cafeService.cafes.map((cafe) => cafe.toJson()).toList());
+    await _webViewController.runJavascript('loadCafes($cafesJson)');
   }
 
   @override
@@ -55,13 +49,19 @@ class _HomeViewState extends State<HomeView> {
             children: [
               Expanded(
                 flex: 2,
-                child: GoogleMap(
-                  onMapCreated: _onMapCreated,
-                  initialCameraPosition: CameraPosition(
-                    target: LatLng(37.5665, 126.9780), // 서울 중심 좌표
-                    zoom: 12,
-                  ),
-                  markers: _markers,
+                child: WebView(
+                  initialUrl: 'assets/kakao_map.html',
+                  javascriptMode: JavascriptMode.unrestricted,
+                  onWebViewCreated: _onWebViewCreated,
+                  javascriptChannels: Set.from([
+                    JavascriptChannel(
+                      name: 'CafeChannel',
+                      onMessageReceived: (JavascriptMessage message) {
+                        final cafeData = jsonDecode(message.message);
+                        _showCafeDetail(Cafe.fromJson(cafeData));
+                      },
+                    ),
+                  ]),
                 ),
               ),
               Expanded(
@@ -74,8 +74,8 @@ class _HomeViewState extends State<HomeView> {
                       title: Text(cafe.name),
                       subtitle: Text(cafe.address),
                       onTap: () {
-                        _mapController?.animateCamera(CameraUpdate.newLatLng(
-                            LatLng(cafe.latitude, cafe.longitude)));
+                        _webViewController.runJavascript(
+                            'moveToLocation(${cafe.latitude}, ${cafe.longitude})');
                       },
                     );
                   },
@@ -86,5 +86,9 @@ class _HomeViewState extends State<HomeView> {
         },
       ),
     );
+  }
+
+  void _showCafeDetail(Cafe cafe) {
+    // 카페 상세 정보를 보여주는 로직 구현
   }
 }

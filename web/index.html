@@ -1,38 +1,105 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
-  <base href="$FLUTTER_BASE_HREF">
-
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="A cafe study map application.">
 
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="cagong_info_flutter">
+  <meta name="apple-mobile-web-app-title" content="cagong_map">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>cagong_info_flutter</title>
+  <title>카공여지도</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    .cafe-marker-label {
+      padding: 3px 5px;
+      background: white;
+      border: 1px solid black;
+      border-radius: 3px;
+      text-align: center;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 10px;
+      white-space: nowrap;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .cafe-marker-label.co-work {
+      background: #ffe9bc;
+      color: rgb(0, 0, 0);
+    }
+  </style>
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+  <!-- Flutter Web에 필요한 스크립트 -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('flutter-first-frame', function () {
+        navigator.serviceWorker.register('flutter_service_worker.js');
+      });
+    }
+  </script>
+  <script src="main.dart.js" type="application/javascript"></script>
+
+  <!-- 카카오 맵과 관련된 스크립트 -->
+  <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=0263a29ce4d7869fc8090d309d2bc371"></script>
+  <script>
+    var map;
+    var markers = [];
+
+    function initMap() {
+      var container = document.getElementById('map');
+      var options = {
+        center: new kakao.maps.LatLng(37.58823, 126.9936),
+        level: 3
+      };
+      map = new kakao.maps.Map(container, options);
+    }
+
+    function addMarker(cafe) {
+      var content = document.createElement('div');
+      content.className = 'cafe-marker-label';
+      if (cafe['Co-work'] === 1 || cafe['Co-work'] === '1') {
+        content.classList.add('co-work');
+      }
+      content.innerHTML = cafe.Name + '<br>' + getHoursDisplay(cafe.Hours_weekday);
+
+      var customOverlay = new kakao.maps.CustomOverlay({
+        map: map,
+        position: new kakao.maps.LatLng(cafe['Position (Latitude)'], cafe['Position (Longitude)']),
+        content: content,
+        yAnchor: 1.1
+      });
+
+      markers.push(customOverlay);
+
+      kakao.maps.event.addListener(customOverlay, 'click', function() {
+        CafeChannel.postMessage(JSON.stringify(cafe));
+      });
+    }
+
+    function getHoursDisplay(hours) {
+      if (hours === -1) return '무제한';
+      if (hours === 0) return '권장X';
+      return hours + '시간';
+    }
+
+    function addCafes(cafeData) {
+      var cafes = JSON.parse(cafeData);
+      cafes.forEach(addMarker);
+    }
+
+    function moveToLocation(lat, lng) {
+      map.setCenter(new kakao.maps.LatLng(lat, lng));
+    }
+
+    window.onload = initMap;
+  </script>
 </body>
 </html>
