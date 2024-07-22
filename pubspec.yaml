@@ -30,3 +30,4 @@ flutter:
     - assets/cafe_info.json
     - assets/images/map_icon.png
     - assets/kakao_map.html
+    - assets/kakao_map.js
