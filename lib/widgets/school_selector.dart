@@ -1,3 +1,5 @@
+//school_selector.dart
+
 import 'package:flutter/material.dart';
 
 class SchoolSelector extends StatelessWidget {

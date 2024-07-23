@@ -1,7 +1,13 @@
-import 'dart:convert';
-import 'dart:html' as html;
 import 'package:flutter/material.dart';
-import 'package:js/js.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
+import 'windows_webview.dart';
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:provider/provider.dart';
+import 'services/cafe_service.dart';
+import 'screens/home_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -11,80 +17,38 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        body: Stack(
-          children: [
-            HtmlElementView(viewType: 'map'),
-            // Flutter 위젯들 추가
-          ],
-        ),
+      title: '카공여지도',
+      theme: ThemeData(
+        primarySwatch: Colors.brown,
+        fontFamily: 'Noto Sans KR',
       ),
+      home: HomeScreen(),
     );
   }
 }
 
-@JS()
-external void addCafes(String cafes);
-
-@override
-void registerWebView() {
-  final mapDiv = html.DivElement()
-    ..id = 'map'
-    ..style.width = '100%'
-    ..style.height = '100%';
-  html.document.body!.append(mapDiv);
-}
-
-// 예시 데이터
-void addSampleCafes() {
-  final sampleData = jsonEncode([
-    {"Name": "Cafe A", "Hours_weekday": 2, "Position (Latitude)": 37.5665, "Position (Longitude)": 126.9780, "Co-work": 1},
-    // 다른 카페 데이터들
-  ]);
-  addCafes(sampleData);
-}
-import 'dart:convert';
-import 'dart:html' as html;
-import 'package:flutter/material.dart';
-import 'package:js/js.dart';
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
+class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: Stack(
-          children: [
-            HtmlElementView(viewType: 'map'),
-            // Flutter 위젯들 추가
-          ],
-        ),
-      ),
+    return Scaffold(
+      appBar: AppBar(title: Text('카공여지도')),
+      body: _buildBody(),
     );
   }
-}
 
-@JS()
-external void addCafes(String cafes);
-
-@override
-void registerWebView() {
-  final mapDiv = html.DivElement()
-    ..id = 'map'
-    ..style.width = '100%'
-    ..style.height = '100%';
-  html.document.body!.append(mapDiv);
-}
-
-// 예시 데이터
-void addSampleCafes() {
-  final sampleData = jsonEncode([
-    {"Name": "Cafe A", "Hours_weekday": 2, "Position (Latitude)": 37.5665, "Position (Longitude)": 126.9780, "Co-work": 1},
-    // 다른 카페 데이터들
-  ]);
-  addCafes(sampleData);
+  Widget _buildBody() {
+    if (kIsWeb) {
+      // 웹 버전 구현
+      return Text('웹 버전은 아직 구현되지 않았습니다.');
+    } else if (Platform.isWindows) {
+      // Windows 버전
+      return WindowsWebView();
+    } else if (Platform.isAndroid || Platform.isIOS) {
+      // 모바일 버전 (기존 WebView 사용)
+      return Text('모바일 버전은 기존 WebView를 사용합니다.');
+    } else {
+      // 지원되지 않는 플랫폼
+      return Text('지원되지 않는 플랫폼입니다.');
+    }
+  }
 }
