@@ -10,18 +10,27 @@ class CafeService extends ChangeNotifier {
   List<Cafe> get cafes => _filteredCafes.isEmpty ? _cafes : _filteredCafes;
 
   Future<void> loadCafes() async {
-    final String response =
-        await rootBundle.loadString('assets/cafe_info.json');
-    final data = await json.decode(response);
-    _cafes = data.map<Cafe>((json) => Cafe.fromJson(json)).toList();
-    _filteredCafes = List.from(_cafes);
-    notifyListeners();
+    try {
+      final String response = await rootBundle.loadString('assets/cafe_info.json');
+      print('JSON response: $response'); // JSON 데이터 로드 확인
+
+      final List<dynamic> data = json.decode(response);
+      print('Decoded JSON: $data'); // JSON 데이터 디코딩 확인
+
+      _cafes = data.map((json) {
+        print('Mapping JSON: $json'); // 각 JSON 객체 매핑 확인
+        return Cafe.fromJson(json);
+      }).toList();
+
+      print('Loaded Cafes: $_cafes'); // 파싱된 객체 리스트 확인
+      _filteredCafes = List.from(_cafes);
+      notifyListeners();
+    } catch (e) {
+      print('Error loading cafes: $e'); // 오류 메시지 출력
+    }
   }
 
   void moveToCafe(Cafe cafe) {
-    // 이 메서드는 KakaoMap 위젯에서 구현된 moveToLocation 메서드를 호출해야 합니다.
-    // KakaoMap 위젯에 대한 참조가 필요하므로, 이 메서드를 직접 구현하기보다는
-    // HomeScreen에서 구현하는 것이 더 적절할 수 있습니다.
     notifyListeners();
   }
 

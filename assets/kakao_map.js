@@ -1,7 +1,20 @@
 var map;
 var markers = [];
 
+// 기존의 window.onload 이벤트 핸들러를 복원
+window.onload = function() {
+  if (typeof initializeKakaoMap === 'function') {
+    initializeKakaoMap();
+  } else {
+    console.error('initializeKakaoMap function is not defined');
+  }
+};
+
 function initMap() {
+  if (typeof kakao === 'undefined') {
+    setTimeout(initMap, 100);
+    return;
+  }  
   var container = document.getElementById('map');
   var options = {
     center: new kakao.maps.LatLng(37.58823, 126.9936),
@@ -29,6 +42,11 @@ function addMarker(cafe) {
 
   kakao.maps.event.addListener(customOverlay, 'click', function() {
     // Flutter와의 상호작용 구현
+    if (window.CafeChannel) {
+      window.CafeChannel.postMessage(JSON.stringify(cafe));
+    } else {
+      console.log('CafeChannel is not available');
+    }
   });
 }
 
@@ -47,4 +65,9 @@ function moveToLocation(lat, lng) {
   map.setCenter(new kakao.maps.LatLng(lat, lng));
 }
 
-window.onload = initMap;
+// 초기화 함수 호출을 window.onload에서 제거
+// Flutter에서 초기화를 제어할 수 있도록 함
+// window.onload = initMap;
+
+// 대신, Flutter에서 호출할 수 있는 초기화 함수를 노출
+window.initializeKakaoMap = initMap;

@@ -1,61 +1,53 @@
-//kakao_map.dart
-
-import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:provider/provider.dart';
-import '../services/cafe_service.dart';
-import '../models/cafe.dart'; // Cafe 모델 import 추가
-import 'cafe_detail.dart';
+import 'kakao_map_web.dart' if (dart.library.io) 'kakao_map_mobile.dart' as platform;
 
 class KakaoMap extends StatefulWidget {
-  const KakaoMap({Key? key}) : super(key: key); // 생성자 수정
+  final double width;
+  final double height;
+  final Function(Map<String, dynamic>) onCafeSelected;
+
+  const KakaoMap({
+    Key? key,
+    required this.onCafeSelected,
+    required this.width,
+    required this.height,
+  }) : super(key: key);
 
   @override
   KakaoMapState createState() => KakaoMapState();
 }
 
 class KakaoMapState extends State<KakaoMap> {
-  late WebViewController _controller;
+  late final platform.MapController _controller;
 
   @override
-  Widget build(BuildContext context) {
-    return WebView(
-      initialUrl: 'assets/kakao_map.html',
-      javascriptMode: JavascriptMode.unrestricted,
-      onWebViewCreated: (WebViewController webViewController) {
-        _controller = webViewController;
-        _loadCafes();
-      },
-      javascriptChannels: Set.from([
-        JavascriptChannel(
-          name: 'CafeChannel',
-          onMessageReceived: (JavascriptMessage message) {
-            final cafeData = jsonDecode(message.message);
-            _showCafeDetail(cafeData);
-          },
-        ),
-      ]),
-    );
+  void initState() {
+    super.initState();
+    _controller = platform.MapController();
   }
 
   void moveToLocation(double lat, double lng) {
-    _controller.evaluateJavascript('moveToLocation($lat, $lng)');
+    _controller.moveToLocation(lat, lng);
   }
 
-  void _loadCafes() async {
-    final cafeService = Provider.of<CafeService>(context, listen: false);
-    await cafeService.loadCafes();
-    final cafeJson = jsonEncode(cafeService.cafes);
-    _controller.evaluateJavascript('addCafes($cafeJson)');
+  void addCafes(String cafeJson) {
+    _controller.addCafes(cafeJson);
   }
 
-  void _showCafeDetail(Map<String, dynamic> cafeData) {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return CafeDetail(cafe: Cafe.fromJson(cafeData));
-      },
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: platform.KakaoMapView(
+            controller: _controller,
+            onCafeSelected: widget.onCafeSelected,
+            width: widget.width,
+            height: widget.height,
+          ),
+        ),
+      ],
     );
   }
 }

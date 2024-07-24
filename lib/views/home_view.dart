@@ -1,9 +1,12 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import '../widgets/sidebar.dart';
+import '../widgets/kakao_map.dart';
+import '../widgets/school_selector.dart';
+import '../widgets/filter_popup.dart';
+import '../models/cafe.dart';
+import 'cafe_detail_view.dart';
 import 'package:provider/provider.dart';
 import '../services/cafe_service.dart';
-import '../models/cafe.dart';
 
 class HomeView extends StatefulWidget {
   @override
@@ -11,84 +14,179 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  late WebViewController _webViewController;
+  final GlobalKey<KakaoMapState> _mapKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
       final cafeService = Provider.of<CafeService>(context, listen: false);
       cafeService.loadCafes();
     });
   }
 
-  void _onWebViewCreated(WebViewController webViewController) {
-    _webViewController = webViewController;
-    _loadCafes();
-  }
-
-  void _loadCafes() async {
-    final cafeService = Provider.of<CafeService>(context, listen: false);
-    final cafesJson =
-        jsonEncode(cafeService.cafes.map((cafe) => cafe.toJson()).toList());
-    await _webViewController.runJavascript('loadCafes($cafesJson)');
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('카공여지도'),
-      ),
       body: Consumer<CafeService>(
         builder: (context, cafeService, child) {
           if (cafeService.cafes.isEmpty) {
             return Center(child: CircularProgressIndicator());
           }
-          return Column(
-            children: [
-              Expanded(
-                flex: 2,
-                child: WebView(
-                  initialUrl: 'assets/kakao_map.html',
-                  javascriptMode: JavascriptMode.unrestricted,
-                  onWebViewCreated: _onWebViewCreated,
-                  javascriptChannels: Set.from([
-                    JavascriptChannel(
-                      name: 'CafeChannel',
-                      onMessageReceived: (JavascriptMessage message) {
-                        final cafeData = jsonDecode(message.message);
-                        _showCafeDetail(Cafe.fromJson(cafeData));
-                      },
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              return Stack(
+                children: [
+                  // 지도 레이어
+                  Positioned.fill(
+                    child: KakaoMap(
+                      key: _mapKey,
+                      onCafeSelected: _showCafeDetail,
+                      width: constraints.maxWidth,
+                      height: constraints.maxHeight,
                     ),
-                  ]),
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: ListView.builder(
-                  itemCount: cafeService.cafes.length,
-                  itemBuilder: (context, index) {
-                    final cafe = cafeService.cafes[index];
-                    return ListTile(
-                      title: Text(cafe.name),
-                      subtitle: Text(cafe.address),
-                      onTap: () {
-                        _webViewController.runJavascript(
-                            'moveToLocation(${cafe.latitude}, ${cafe.longitude})');
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
+                  ),
+                  // UI 레이어
+                  if (constraints.maxWidth > 600)
+                    _buildDesktopUI(constraints)
+                  else
+                    _buildMobileUI(constraints),
+                ],
+              );
+            },
           );
         },
       ),
     );
   }
 
-  void _showCafeDetail(Cafe cafe) {
-    // 카페 상세 정보를 보여주는 로직 구현
+  Widget _buildDesktopUI(BoxConstraints constraints) {
+    return Row(
+      children: [
+        Container(
+          width: 300,
+          color: Colors.white,
+          child: Sidebar(),
+        ),
+        Expanded(
+          child: Stack(
+            children: [
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 50,
+                  color: Colors.white.withOpacity(0.8),
+                  child: SchoolSelector(
+                    onSchoolSelected: (lat, lng) {
+                      _mapKey.currentState?.moveToLocation(lat, lng);
+                    },
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 60,
+                right: 10,
+                child: FloatingActionButton(
+                  child: Icon(Icons.filter_list),
+                  onPressed: _showFilterPopup,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileUI(BoxConstraints constraints) {
+    return Stack(
+      children: [
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            height: 50,
+            color: Colors.white.withOpacity(0.8),
+            child: SchoolSelector(
+              onSchoolSelected: (lat, lng) {
+                _mapKey.currentState?.moveToLocation(lat, lng);
+              },
+            ),
+          ),
+        ),
+        Positioned(
+          top: 60,
+          right: 10,
+          child: FloatingActionButton(
+            child: Icon(Icons.filter_list),
+            onPressed: _showFilterPopup,
+          ),
+        ),
+        DraggableScrollableSheet(
+          initialChildSize: 0.1,
+          minChildSize: 0.1,
+          maxChildSize: 0.5,
+          builder: (BuildContext context, ScrollController scrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 5,
+                    blurRadius: 7,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: ListView(
+                controller: scrollController,
+                children: [
+                  Container(
+                    height: 40,
+                    child: Center(
+                      child: Container(
+                        width: 50,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Sidebar(),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  void _showFilterPopup() {
+    showDialog(
+      context: context,
+      builder: (context) => FilterPopup(
+        onApplyFilter: (filters) {
+          final cafeService = Provider.of<CafeService>(context, listen: false);
+          cafeService.filterCafes(filters);
+        },
+      ),
+    );
+  }
+
+  void _showCafeDetail(Map<String, dynamic> cafeData) {
+    Cafe cafe = Cafe.fromJson(cafeData);
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => CafeDetailView(cafe: cafe),
+      ),
+    );
   }
 }

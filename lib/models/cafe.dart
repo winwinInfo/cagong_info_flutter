@@ -32,18 +32,18 @@ class Cafe {
   factory Cafe.fromJson(Map<String, dynamic> json) {
     return Cafe(
       id: json['ID'].toString(),
-      name: json['Name'],
-      address: json['Address'],
-      message: json['Message'],
-      openingHours: json['영업 시간'],
-      hoursWeekday: json['Hours_weekday'],
-      hoursWeekend: json['Hours_weekend'],
-      price: int.parse(json['Price'].replaceAll(RegExp(r'[^0-9]'), '')),
+      name: json['Name'] ?? '',
+      address: json['Address'] ?? '',
+      message: json['Message'] ?? '',
+      openingHours: json['영업 시간'] ?? '',
+      hoursWeekday: json['Hours_weekday'] ?? 0,
+      hoursWeekend: json['Hours_weekend'] ?? 0,
+      price: int.tryParse(json['Price']?.replaceAll(RegExp(r'[^0-9]'), '') ?? '0') ?? 0,
       seatingInfo: _parseSeatingInfo(json),
       videoUrl: json['Video URL'],
-      cowork: json['Co-work'],
-      latitude: json['Position (Latitude)'],
-      longitude: json['Position (Longitude)'],
+      cowork: json['Co-work'] ?? 0,
+      latitude: json['Position (Latitude)'] ?? 0.0,
+      longitude: json['Position (Longitude)'] ?? 0.0,
     );
   }
 
@@ -56,9 +56,9 @@ class Cafe {
 
       if (json.containsKey(typeKey) && json[typeKey] != null) {
         seatingInfoList.add(SeatingInfo(
-          type: json[typeKey],
-          count: json[countKey] ?? 0,
-          powerCount: json[powerKey] ?? 0,
+          type: json[typeKey] ?? '',
+          count: (json[countKey] is int ? json[countKey] : int.tryParse(json[countKey]?.toString() ?? '0')) ?? 0,
+          powerCount: (json[powerKey] is int ? json[powerKey] : int.tryParse(json[powerKey]?.toString() ?? '0')) ?? 0,
         ));
       }
     }

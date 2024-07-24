@@ -3,10 +3,10 @@ import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/cafe.dart';
 
-class CafeDetailScreen extends StatelessWidget {
+class CafeDetailView extends StatelessWidget {
   final Cafe cafe;
 
-  CafeDetailScreen({required this.cafe});
+  CafeDetailView({required this.cafe});
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +92,6 @@ class CafeDetailScreen extends StatelessWidget {
         );
       }
     }
-    // YouTube 동영상이 아닌 경우 일반 비디오 플레이어를 사용할 수 있습니다.
     return Text('동영상을 표시할 수 없습니다.');
   }
 
@@ -104,7 +103,7 @@ class CafeDetailScreen extends StatelessWidget {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         SizedBox(height: 8),
         Image.network(
-          '${cafeName}쿠폰.png', // 쿠폰 이미지 URL을 적절히 수정해야 합니다.
+          '${cafeName}쿠폰.png',
           errorBuilder: (context, error, stackTrace) {
             return Text('쿠폰 이미지를 불러올 수 없습니다.');
           },
