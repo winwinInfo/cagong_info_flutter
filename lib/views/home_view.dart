@@ -37,7 +37,7 @@ class _HomeViewState extends State<HomeView> {
             builder: (context, constraints) {
               return Stack(
                 children: [
-                  // 지도 레이어
+                  // 지도 레이어 (가장 아래에 위치)
                   Positioned.fill(
                     child: KakaoMap(
                       key: _mapKey,
@@ -46,7 +46,7 @@ class _HomeViewState extends State<HomeView> {
                       height: constraints.maxHeight,
                     ),
                   ),
-                  // UI 레이어
+                  // UI 레이어 (지도 위에 위치)
                   if (constraints.maxWidth > 600)
                     _buildDesktopUI(constraints)
                   else

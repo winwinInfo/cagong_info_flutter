@@ -12,21 +12,21 @@ class CafeService extends ChangeNotifier {
   Future<void> loadCafes() async {
     try {
       final String response = await rootBundle.loadString('assets/cafe_info.json');
-      print('JSON response: $response'); // JSON 데이터 로드 확인
+      //print('JSON response: $response'); // JSON 데이터 로드 확인
 
       final List<dynamic> data = json.decode(response);
-      print('Decoded JSON: $data'); // JSON 데이터 디코딩 확인
+      //print('Decoded JSON: $data'); // JSON 데이터 디코딩 확인
 
       _cafes = data.map((json) {
-        print('Mapping JSON: $json'); // 각 JSON 객체 매핑 확인
+        //print('Mapping JSON: $json'); // 각 JSON 객체 매핑 확인
         return Cafe.fromJson(json);
       }).toList();
 
-      print('Loaded Cafes: $_cafes'); // 파싱된 객체 리스트 확인
+      //print('Loaded Cafes: $_cafes'); // 파싱된 객체 리스트 확인
       _filteredCafes = List.from(_cafes);
       notifyListeners();
     } catch (e) {
-      print('Error loading cafes: $e'); // 오류 메시지 출력
+      //print('Error loading cafes: $e'); // 오류 메시지 출력
     }
   }
 

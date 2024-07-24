@@ -67,7 +67,7 @@ class _KakaoMapViewState extends State<KakaoMapView> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
       width: widget.width,
       height: widget.height,
       child: HtmlElementView(viewType: _mapElement.id),
