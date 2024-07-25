@@ -28,6 +28,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent, // Scaffold 배경을 투명하게 설정
       body: Consumer<CafeService>(
         builder: (context, cafeService, child) {
           if (cafeService.cafes.isEmpty) {
@@ -47,10 +48,9 @@ class _HomeViewState extends State<HomeView> {
                     ),
                   ),
                   // UI 레이어 (지도 위에 위치)
-                  if (constraints.maxWidth > 600)
-                    _buildDesktopUI(constraints)
-                  else
-                    _buildMobileUI(constraints),
+                  constraints.maxWidth > 600
+                      ? _buildDesktopUI(constraints)
+                      : _buildMobileUI(constraints),
                 ],
               );
             },
