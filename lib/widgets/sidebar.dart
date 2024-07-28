@@ -1,11 +1,18 @@
-//sidebar.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/cafe_service.dart';
 import '../models/cafe.dart';
 
 class Sidebar extends StatefulWidget {
+  final Function(String) onSearch;
+  final VoidCallback onSchoolSelect;
+
+  const Sidebar({
+    Key? key,
+    required this.onSearch,
+    required this.onSchoolSelect,
+  }) : super(key: key);
+
   @override
   _SidebarState createState() => _SidebarState();
 }
@@ -34,8 +41,13 @@ class _SidebarState extends State<Sidebar> {
                 setState(() {
                   _searchQuery = value;
                 });
+                widget.onSearch(value);
               },
             ),
+          ),
+          ElevatedButton(
+            onPressed: widget.onSchoolSelect,
+            child: Text('학교 선택'),
           ),
           Expanded(
             child: Consumer<CafeService>(
@@ -53,6 +65,8 @@ class _SidebarState extends State<Sidebar> {
                       subtitle: Text(filteredCafes[index].address),
                       onTap: () {
                         // 카페 선택 시 동작
+                        cafeService.moveToCafe(filteredCafes[index]);
+                        Navigator.pop(context); // 사이드바 닫기
                       },
                     );
                   },

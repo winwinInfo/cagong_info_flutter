@@ -37,17 +37,15 @@ class KakaoMapState extends State<KakaoMap> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: platform.KakaoMapView(
-            controller: _controller,
-            onCafeSelected: widget.onCafeSelected,
-            width: widget.width,
-            height: widget.height,
-          ),
-        ),
-      ],
+    return SizedBox(
+      width: widget.width,
+      height: widget.height,
+      child: platform.KakaoMapView(
+        controller: _controller,
+        onCafeSelected: widget.onCafeSelected,
+        width: widget.width,
+        height: widget.height,
+      ),
     );
   }
 }
