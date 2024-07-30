@@ -5,10 +5,16 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 class MapController {
-  late String _mapElementId;
-  
+  String? _mapElementId;
+  String? _cafesToAdd;
+
   void initMap() {
-    js.context.callMethod('initMap', [_mapElementId]);
+    if (_mapElementId == null) {
+      print("Error: mapElementId is null");
+      return;
+    }
+    print("Initializing map with ID: $_mapElementId");
+    js.context.callMethod('initializeKakaoMap', [_mapElementId, _cafesToAdd]);
   }
 
   void moveToLocation(double lat, double lng) {
@@ -16,7 +22,10 @@ class MapController {
   }
 
   void addCafes(String cafeJson) {
-    js.context.callMethod('addCafes', [cafeJson]);
+    _cafesToAdd = cafeJson;
+    if (_mapElementId != null) {
+      js.context.callMethod('addCafes', [cafeJson]);
+    }
   }
 }
 
@@ -27,8 +36,8 @@ class KakaoMapView extends StatefulWidget {
   final double height;
 
   const KakaoMapView({
-    Key? key, 
-    required this.controller, 
+    Key? key,
+    required this.controller,
     required this.onCafeSelected,
     required this.width,
     required this.height,
@@ -46,20 +55,26 @@ class _KakaoMapViewState extends State<KakaoMapView> {
     super.initState();
     final mapElementId = 'map-${DateTime.now().millisecondsSinceEpoch}';
     widget.controller._mapElementId = mapElementId;
-    
+
     _mapElement = html.DivElement()
       ..id = mapElementId
       ..style.width = '${widget.width}px'
       ..style.height = '${widget.height}px';
 
-    ui.platformViewRegistry.registerViewFactory(mapElementId, (int viewId) => _mapElement);
+    html.document.body!.append(_mapElement);
 
-    html.window.onLoad.listen((_) {
-      widget.controller.initMap();
+    ui.platformViewRegistry
+        .registerViewFactory(mapElementId, (int viewId) => _mapElement);
+
+    // 지연된 초기화
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      Future.delayed(Duration(milliseconds: 100), () {
+        print("Attempting to initialize map");
+        widget.controller.initMap();
+      });
     });
 
     js.context['onCafeSelected'] = (String cafeData) {
-      // Parse the JSON string to a Dart Map
       Map<String, dynamic> dartMap = jsonDecode(cafeData);
       widget.onCafeSelected(dartMap);
     };

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'kakao_map_web.dart' if (dart.library.io) 'kakao_map_mobile.dart' as platform;
+import 'kakao_map_web.dart' if (dart.library.io) 'kakao_map_mobile.dart'
+    as platform;
 
 class KakaoMap extends StatefulWidget {
   final double width;
