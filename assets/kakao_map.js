@@ -3,13 +3,13 @@ var markers = [];
 var isMapInitialized = false;
 
 // 기존의 window.onload 이벤트 핸들러를 복원
-window.onload = function() {
-  if (typeof initializeKakaoMap === 'function') {
-    initializeKakaoMap();
-  } else {
-    console.error('initializeKakaoMap function is not defined');
-  }
-};
+// window.onload = function() {
+//   if (typeof initMap === 'function') {
+//     initMap();
+//   } else {
+//     console.error('initializeKakaoMap function is not defined');
+//   }
+// };
 
 function initMap(mapElementId, cafeData) {
   if (isMapInitialized) {
@@ -32,24 +32,17 @@ function initMap(mapElementId, cafeData) {
   });
   
   if (cafeData) {
+    console.log("data exists!!!");
     addCafes(cafeData);
+  }
+  else
+  {
+    console.log("NO DATA!!!");
   }
   
   isMapInitialized = true;
   console.log("Map initialized successfully");
 }
-  
-  var options = {
-    center: new kakao.maps.LatLng(37.58823, 126.9936),
-    level: 3
-  };
-  
-  map = new kakao.maps.Map(container, options);
-  
-  // 카페 데이터가 있으면 마커 추가
-  if (cafeData) {
-    addCafes(cafeData);
-  }
 
 
 function addMarker(cafe) {
@@ -99,4 +92,4 @@ function moveToLocation(lat, lng) {
 // window.onload = initMap;
 
 // 대신, Flutter에서 호출할 수 있는 초기화 함수를 노출
-window.initializeKakaoMap = initMap;
+window.initMap = initMap;

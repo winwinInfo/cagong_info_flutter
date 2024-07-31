@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'dart:js' as js;
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class MapController {
   String? _mapElementId;
@@ -14,7 +15,8 @@ class MapController {
       return;
     }
     print("Initializing map with ID: $_mapElementId");
-    js.context.callMethod('initializeKakaoMap', [_mapElementId, _cafesToAdd]);
+    print("Cafe data to add: $_cafesToAdd");
+    js.context.callMethod('initMap', [_mapElementId, _cafesToAdd]);
   }
 
   void moveToLocation(double lat, double lng) {
@@ -23,6 +25,7 @@ class MapController {
 
   void addCafes(String cafeJson) {
     _cafesToAdd = cafeJson;
+    print("Updating cafe data: $_cafesToAdd");
     if (_mapElementId != null) {
       js.context.callMethod('addCafes', [cafeJson]);
     }
@@ -50,6 +53,15 @@ class KakaoMapView extends StatefulWidget {
 class _KakaoMapViewState extends State<KakaoMapView> {
   late html.DivElement _mapElement;
 
+  Future<void> _loadCafeData() async {
+    try {
+      final String jsonString = await rootBundle.loadString('assets/cafe_info.json');
+      widget.controller.addCafes(jsonString);
+    } catch (e) {
+      print("Error loading cafe data: $e");
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -66,11 +78,13 @@ class _KakaoMapViewState extends State<KakaoMapView> {
     ui.platformViewRegistry
         .registerViewFactory(mapElementId, (int viewId) => _mapElement);
 
-    // 지연된 초기화
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
-      Future.delayed(Duration(milliseconds: 100), () {
-        print("Attempting to initialize map");
-        widget.controller.initMap();
+    // 카페 데이터 로드 및 지도 초기화
+    _loadCafeData().then((_) {
+      WidgetsBinding.instance!.addPostFrameCallback((_) {
+        Future.delayed(Duration(milliseconds: 500), () {
+          print("Attempting to initialize map");
+          widget.controller.initMap();
+        });
       });
     });
 
