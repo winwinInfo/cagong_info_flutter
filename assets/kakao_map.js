@@ -51,7 +51,32 @@ function addMarker(cafe) {
   if (cafe['Co-work'] === 1 || cafe['Co-work'] === '1') {
     content.classList.add('co-work');
   }
-  content.innerHTML = cafe.Name + '<br>' + getHoursDisplay(cafe.Hours_weekday);
+  
+  // 카페 이름과 영업 시간을 별도의 span 요소로 만들어 줄바꿈 효과를 줍니다.
+  content.innerHTML = `
+    <span>${cafe.Name}</span><br>
+    <span>${getHoursDisplay(cafe.Hours_weekday)}</span>
+  `;
+
+  // 인라인 스타일을 추가하여 CSS를 적용합니다.
+  content.style.cssText = `
+    padding: 3px 5px;
+    background: white;
+    border: 1px solid black;
+    border-radius: 3px;
+    text-align: center;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 10px;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  `;
+
+  // co-work 클래스에 대한 스타일도 추가합니다.
+  if (content.classList.contains('co-work')) {
+    content.style.background = '#ffe9bc';
+    content.style.color = 'rgb(0, 0, 0)';
+  }
 
   var customOverlay = new kakao.maps.CustomOverlay({
     map: map,
@@ -62,14 +87,25 @@ function addMarker(cafe) {
 
   markers.push(customOverlay);
 
-  kakao.maps.event.addListener(customOverlay, 'click', function() {
-    // Flutter와의 상호작용 구현
-    if (window.CafeChannel) {
-      window.CafeChannel.postMessage(JSON.stringify(cafe));
+  content.addEventListener('click', function(e) {
+    e.stopPropagation();
+//console.log("Clicked!!!!");
+    if (window.onCafeSelected) {
+        window.onCafeSelected(JSON.stringify(cafe));
     } else {
-      console.log('CafeChannel is not available');
+        console.log('onCafeSelected is not available');
     }
-  });
+});
+
+
+//   kakao.maps.event.addListener(customOverlay, 'click', function() {
+// console.log("Clicked!!!!");    
+//     if (window.onCafeSelected) {
+//       window.onCafeSelected(JSON.stringify(cafe));
+//     } else {
+//       console.log('onCafeSelected is not available');
+//     }
+//   });
 }
 
 function getHoursDisplay(hours) {
@@ -85,6 +121,20 @@ function addCafes(cafeData) {
 
 function moveToLocation(lat, lng) {
   map.setCenter(new kakao.maps.LatLng(lat, lng));
+  map.setLevel(1);
+}
+
+
+function setMapInteraction(enable) {
+  if (map) {
+    if (enable) {
+      map.setDraggable(true);
+      map.setZoomable(true);
+    } else {
+      map.setDraggable(false);
+      map.setZoomable(false);
+    }
+  }
 }
 
 // 초기화 함수 호출을 window.onload에서 제거

@@ -1,17 +1,25 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import '../models/cafe.dart';
 import 'package:flutter/foundation.dart';
+import '../widgets/kakao_map.dart';
 
 class CafeService extends ChangeNotifier {
   List<Cafe> _cafes = [];
   List<Cafe> _filteredCafes = [];
+  Cafe? _selectedCafe;
+  final GlobalKey<KakaoMapState> mapKey; // KakaoMapState에 대한 글로벌 키 추가
+
+  CafeService(this.mapKey); // 생성자 수정
 
   List<Cafe> get cafes => _filteredCafes.isEmpty ? _cafes : _filteredCafes;
+  Cafe? get selectedCafe => _selectedCafe;
 
   Future<void> loadCafes() async {
     try {
-      final String response = await rootBundle.loadString('assets/cafe_info.json');
+      final String response =
+          await rootBundle.loadString('assets/cafe_info.json');
       final List<dynamic> data = json.decode(response);
 
       _cafes = data.map((json) => Cafe.fromJson(json)).toList();
@@ -25,7 +33,8 @@ class CafeService extends ChangeNotifier {
   }
 
   void moveToCafe(Cafe cafe) {
-    // 이 메서드의 구현이 필요합니다. 현재는 아무 작업도 수행하지 않습니다.
+    _selectedCafe = cafe;
+    mapKey.currentState?.moveToLocation(cafe.latitude, cafe.longitude);
     notifyListeners();
   }
 
@@ -56,5 +65,15 @@ class CafeService extends ChangeNotifier {
     }).toList();
 
     notifyListeners();
+  }
+
+  //카페마커 추가하기
+  void addCafesToMap(String cafeJson) {
+    mapKey.currentState?.addCafes(cafeJson);
+  }
+
+  //상호작용
+  void setMapInteraction(bool enable) {
+    mapKey.currentState?.setMapInteraction(enable);
   }
 }

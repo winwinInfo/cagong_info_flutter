@@ -6,6 +6,7 @@ import 'kakao_map_web.dart' if (dart.library.io) 'kakao_map_mobile.dart'
 class KakaoMap extends StatefulWidget {
   final double width;
   final double height;
+  final bool isInteractionDisabled; // 새로 추가
   final Function(Map<String, dynamic>) onCafeSelected;
 
   const KakaoMap({
@@ -13,6 +14,7 @@ class KakaoMap extends StatefulWidget {
     required this.onCafeSelected,
     required this.width,
     required this.height,
+    this.isInteractionDisabled = false, // 새로 추가
   }) : super(key: key);
 
   @override
@@ -36,6 +38,11 @@ class KakaoMapState extends State<KakaoMap> {
     _controller.addCafes(cafeJson);
   }
 
+  // 새로운 메소드 추가
+  void setMapInteraction(bool enable) {
+    _controller.setMapInteraction(enable);
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -46,6 +53,7 @@ class KakaoMapState extends State<KakaoMap> {
         onCafeSelected: widget.onCafeSelected,
         width: widget.width,
         height: widget.height,
+        isInteractionDisabled: widget.isInteractionDisabled, //상호작용가능여부
       ),
     );
   }

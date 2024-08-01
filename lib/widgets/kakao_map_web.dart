@@ -30,6 +30,14 @@ class MapController {
       js.context.callMethod('addCafes', [cafeJson]);
     }
   }
+
+  void setMarkerClickListener() {
+    js.context.callMethod('setMarkerClickListener');
+  }
+
+  void setMapInteraction(bool enable) {
+    js.context.callMethod('setMapInteraction', [enable]);
+  }
 }
 
 class KakaoMapView extends StatefulWidget {
@@ -37,6 +45,7 @@ class KakaoMapView extends StatefulWidget {
   final Function(Map<String, dynamic>) onCafeSelected;
   final double width;
   final double height;
+  final bool isInteractionDisabled;
 
   const KakaoMapView({
     Key? key,
@@ -44,6 +53,7 @@ class KakaoMapView extends StatefulWidget {
     required this.onCafeSelected,
     required this.width,
     required this.height,
+    this.isInteractionDisabled = false,
   }) : super(key: key);
 
   @override
@@ -55,7 +65,8 @@ class _KakaoMapViewState extends State<KakaoMapView> {
 
   Future<void> _loadCafeData() async {
     try {
-      final String jsonString = await rootBundle.loadString('assets/cafe_info.json');
+      final String jsonString =
+          await rootBundle.loadString('assets/cafe_info.json');
       widget.controller.addCafes(jsonString);
     } catch (e) {
       print("Error loading cafe data: $e");
@@ -88,6 +99,7 @@ class _KakaoMapViewState extends State<KakaoMapView> {
       });
     });
 
+    // JavaScript에서 호출될 함수 정의
     js.context['onCafeSelected'] = (String cafeData) {
       Map<String, dynamic> dartMap = jsonDecode(cafeData);
       widget.onCafeSelected(dartMap);
@@ -96,10 +108,36 @@ class _KakaoMapViewState extends State<KakaoMapView> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: widget.width,
-      height: widget.height,
-      child: HtmlElementView(viewType: _mapElement.id),
+    return Stack(
+      children: [
+        Container(
+          width: widget.width,
+          height: widget.height,
+          child: HtmlElementView(viewType: _mapElement.id),
+        ),
+        if (widget.isInteractionDisabled)
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () {},
+              onPanUpdate: (_) {},
+              child: Container(color: Colors.transparent),
+            ),
+          ),
+      ],
     );
+  }
+
+  @override
+  void didUpdateWidget(KakaoMapView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isInteractionDisabled != widget.isInteractionDisabled) {
+      widget.controller.setMapInteraction(!widget.isInteractionDisabled);
+    }
+  }
+
+  @override
+  void dispose() {
+    _mapElement.remove();
+    super.dispose();
   }
 }
