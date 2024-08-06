@@ -1,77 +1,44 @@
 import 'package:flutter/material.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+//import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import '../models/cafe.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart'; // 수정됨
 
-// StatelessWidget에서 StatefulWidget으로 변경
 class CafeDetail extends StatefulWidget {
-  // 변경된 줄
   final Cafe cafe;
 
-  CafeDetail({required this.cafe});
+  CafeDetail({Key? key, required this.cafe}) : super(key: key);
 
   @override
-  _CafeDetailState createState() => _CafeDetailState(); // 추가된 줄
+  _CafeDetailState createState() => _CafeDetailState();
 }
 
-// 새로 추가된 State 클래스
 class _CafeDetailState extends State<CafeDetail> {
-  // 추가된 줄
-  late YoutubePlayerController _controller; // 추가된 줄
-  bool _isPlayerReady = false; // 추가된 줄
-  String _errorMessage = ''; // 추가된 줄
+  YoutubePlayerController? _controller;
 
   @override
   void initState() {
     super.initState();
-    if (widget.cafe.videoUrl != null && widget.cafe.videoUrl!.isNotEmpty) {
-      final videoId = YoutubePlayer.convertUrlToId(widget.cafe.videoUrl!);
-      if (videoId == null) {
-        setState(() {
-          _errorMessage = '유효하지 않은 YouTube URL입니다.';
-        });
-        return;
-      }
+    _initializeController();
+  }
 
-      _controller = YoutubePlayerController(
-        initialVideoId: videoId,
-        flags: YoutubePlayerFlags(
+  void _initializeController() {
+    if (widget.cafe.videoUrl != null && widget.cafe.videoUrl!.isNotEmpty) {
+      final videoId =
+          YoutubePlayerController.convertUrlToId(widget.cafe.videoUrl!);
+      if (videoId != null) {
+        _controller = YoutubePlayerController.fromVideoId(
+          videoId: videoId,
           autoPlay: false,
-          mute: false,
-          forceHD: false,
-          enableCaption: true,
-        ),
-      )..addListener(_listener);
-
-      // 컨트롤러 초기화 후 약간의 지연을 두고 상태 로깅
-      Future.delayed(Duration(seconds: 2), () {
-        _logPlayerStatus();
-      });
+          params: const YoutubePlayerParams(showFullscreenButton: true),
+        );
+      }
     }
-  }
-
-  void _listener() {
-    // 추가된 메서드
-    if (_isPlayerReady && mounted && !_controller.value.isFullScreen) {
-      setState(() {});
-    }
-  }
-
-  @override
-  void deactivate() {
-    // 추가된 메서드
-    if (widget.cafe.videoUrl != null && widget.cafe.videoUrl!.isNotEmpty) {
-      _controller.pause();
-    }
-    super.deactivate();
   }
 
   @override
   void dispose() {
-    // 추가된 메서드
-    if (widget.cafe.videoUrl != null && widget.cafe.videoUrl!.isNotEmpty) {
-      _controller.dispose();
-    }
+    _controller?.close();
     super.dispose();
   }
 
@@ -122,60 +89,18 @@ class _CafeDetailState extends State<CafeDetail> {
               ],
             ),
             SizedBox(height: 16),
-            if (widget.cafe.videoUrl != null &&
-                widget.cafe.videoUrl!.isNotEmpty) // widget. 추가
-              _buildVideoPlayerDebug(), // 변경된 줄
+            if (_controller != null) // widget. 추가
+              YoutubePlayerControllerProvider(
+                controller: _controller!,
+                child: YoutubePlayer(
+                  controller: _controller!,
+                  aspectRatio: 16 / 9,
+                ),
+              ),
           ],
         ),
       ),
     );
-  }
-
-  // 새로운 디버그 기능이 포함된 메서드
-  Widget _buildVideoPlayerDebug() {
-    if (_errorMessage.isNotEmpty) {
-      print('YouTube 플레이어 에러: $_errorMessage');
-      return Center(child: Text('동영상을 로드할 수 없습니다.'));
-    }
-
-    return YoutubePlayer(
-      controller: _controller,
-      showVideoProgressIndicator: true,
-      progressIndicatorColor: Colors.blueAccent,
-      progressColors: ProgressBarColors(
-        playedColor: Colors.blue,
-        handleColor: Colors.blueAccent,
-      ),
-      thumbnail: Container(
-        color: Colors.grey[300],
-        child: Center(child: Icon(Icons.play_arrow, size: 64)),
-      ),
-      onReady: () {
-        setState(() {
-          _isPlayerReady = true;
-        });
-        print('YouTube 플레이어 준비 완료');
-        _logPlayerStatus();
-      },
-      onEnded: (data) {
-        print('동영상 재생 종료');
-      },
-    );
-  }
-
-  void _logPlayerStatus() {
-    if (!_isPlayerReady) return;
-
-    print('플레이어 상태: ${_controller.value.playerState}');
-    print('에러 발생: ${_controller.value.hasError ? "예" : "아니오"}');
-    if (_controller.value.hasError) {
-      print('에러 메시지: ${_controller.value.errorCode}');
-    }
-    print(
-        '동영상 메타데이터 로드: ${_controller.metadata.title.isNotEmpty ? "성공" : "실패"}');
-    if (_controller.metadata.title.isNotEmpty) {
-      print('동영상 제목: ${_controller.metadata.title}');
-    }
   }
 
   Widget _buildCouponInfo(String cafeName) {
