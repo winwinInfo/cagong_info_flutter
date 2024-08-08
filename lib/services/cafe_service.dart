@@ -76,4 +76,11 @@ class CafeService extends ChangeNotifier {
   void setMapInteraction(bool enable) {
     mapKey.currentState?.setMapInteraction(enable);
   }
+
+  void searchCafes(String query) {
+    _filteredCafes = cafes
+        .where((cafe) => cafe.name.toLowerCase().contains(query.toLowerCase()))
+        .toList();
+    notifyListeners();
+  }
 }
