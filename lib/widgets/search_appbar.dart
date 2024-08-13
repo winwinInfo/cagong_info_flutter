@@ -41,77 +41,92 @@ class _SearchAppBarState extends State<SearchAppBar> {
   Widget build(BuildContext context) {
     return AppBar(
       title: Text('카공여지도'),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.filter_list),
-          onPressed: widget.onFilterPressed,
-        ),
-      ],
       bottom: PreferredSize(
         preferredSize: Size.fromHeight(60),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: SearchAnchor(
-            builder: (context, controller) {
-              return SizedBox(
-                height: 48,
-                child: SearchBar(
-                  controller: _searchController,
-                  constraints: BoxConstraints(
-                    minWidth: double.infinity,
-                    maxWidth: double.infinity,
-                  ),
-                  leading: Icon(Icons.search),
-                  trailing: [
-                    IconButton(
-                      icon: Icon(Icons.search),
-                      onPressed: _performSearch,
-                    ),
-                  ],
-                  onTap: () => controller.openView(),
-                  onChanged: (_) => controller.openView(),
-                  onSubmitted: (value) {
-                    _performSearch();
-                    controller.closeView(value);
+          child: Row(
+            children: [
+              Expanded(
+                child: SearchAnchor(
+                  builder: (context, controller) {
+                    return SearchBar(
+                      controller: _searchController,
+                      constraints: BoxConstraints(
+                        minHeight: 48,
+                        maxHeight: 48,
+                      ),
+                      leading: Icon(Icons.search),
+                      trailing: [],
+                      onTap: () {
+                        controller.openView();
+                        _searchController.clear();
+                      },
+                      onChanged: (_) => controller.openView(),
+                      onSubmitted: (value) {
+                        _performSearch();
+                        controller.closeView(value);
+                      },
+                      hintText: '카페 검색',
+                    );
                   },
-                  hintText: '카페 검색',
-                ),
-              );
-            },
-            suggestionsBuilder: (context, controller) {
-              final query = controller.text.toLowerCase();
-              final filteredCafes = widget.cafes
-                  .where((cafe) =>
-                      cafe.name.toLowerCase().contains(query) ||
-                      cafe.address.toLowerCase().contains(query))
-                  .take(5)
-                  .toList();
+                  suggestionsBuilder: (context, controller) {
+                    final query = controller.text.toLowerCase();
+                    if (query.isEmpty) {
+                      //검색어가 없을 때 빈 리스트 반환
+                      return [];
+                    } else {
+                      final filteredCafes = widget.cafes
+                          .where((cafe) =>
+                              cafe.name.toLowerCase().contains(query) ||
+                              cafe.address.toLowerCase().contains(query))
+                          .take(5)
+                          .toList();
 
-              return filteredCafes
-                  .map((cafe) => ListTile(
-                        title: RichText(
-                          text: TextSpan(
-                            children: highlightOccurrences(cafe.name, query),
-                            style: DefaultTextStyle.of(context).style,
-                          ),
-                        ),
-                        subtitle: RichText(
-                          text: TextSpan(
-                            children: highlightOccurrences(cafe.address, query),
-                            style: DefaultTextStyle.of(context).style.copyWith(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
+                      return filteredCafes
+                          .map((cafe) => ListTile(
+                                title: RichText(
+                                  text: TextSpan(
+                                    children:
+                                        highlightOccurrences(cafe.name, query),
+                                    style: DefaultTextStyle.of(context).style,
+                                  ),
                                 ),
-                          ),
-                        ),
-                        onTap: () {
-                          controller.closeView(cafe.name);
-                          _searchController.text = cafe.name;
-                          widget.onCafeSelected(cafe);
-                        },
-                      ))
-                  .toList();
-            },
+                                subtitle: RichText(
+                                  text: TextSpan(
+                                    children: highlightOccurrences(
+                                        cafe.address, query),
+                                    style: DefaultTextStyle.of(context)
+                                        .style
+                                        .copyWith(
+                                          fontSize: 12,
+                                          color: Colors.grey[600],
+                                        ),
+                                  ),
+                                ),
+                                onTap: () {
+                                  controller.closeView(cafe.name);
+                                  _searchController.text = cafe.name;
+                                  widget.onCafeSelected(cafe);
+                                },
+                              ))
+                          .toList();
+                    }
+                  },
+                ),
+              ),
+              SizedBox(width: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: IconButton(
+                  icon: Icon(Icons.filter_list),
+                  onPressed: widget.onFilterPressed,
+                ),
+              ),
+            ],
           ),
         ),
       ),
