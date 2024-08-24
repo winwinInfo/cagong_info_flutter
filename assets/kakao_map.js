@@ -26,6 +26,7 @@ function initMap(mapElementId, cafeData) {
   }
   
   console.log("Map container found, initializing map");
+
   map = new kakao.maps.Map(container, {
     center: new kakao.maps.LatLng(37.58823, 126.9936),
     level: 3

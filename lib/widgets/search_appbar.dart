@@ -39,10 +39,10 @@ class _SearchAppBarState extends State<SearchAppBar> {
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      title: Text('카공여지도'),
-      bottom: PreferredSize(
-        preferredSize: Size.fromHeight(60),
+    return PreferredSize(
+        preferredSize: Size.fromHeight(kToolbarHeight * 2),
+        child: Container(
+          color: Colors.transparent,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Row(

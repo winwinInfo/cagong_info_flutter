@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'services/cafe_service.dart';
 import 'views/home_view.dart';
 import 'widgets/kakao_map.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+
+InAppLocalhostServer server = InAppLocalhostServer(port: 8080);
 
 void main() {
   final mapKey = GlobalKey<KakaoMapState>();
