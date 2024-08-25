@@ -35,8 +35,9 @@ class HomeViewState extends State<HomeView> {
     return Consumer<CafeService>(
       builder: (context, cafeService, _) {
         return Scaffold(
-          backgroundColor: Colors.transparent,
           key: _scaffoldKey,
+          //extendBodyBehindAppBar: true, // body를 AppBar 뒤로 확장
+          backgroundColor: Colors.transparent,
           appBar: SearchAppBar(
             cafes: cafeService.cafes,
             onCafeSelected: (cafe) {
@@ -51,6 +52,7 @@ class HomeViewState extends State<HomeView> {
               }
             },
           ),
+          //extendBodyBehindAppBar: true, // body를 AppBar 뒤로 확장
           body: Column(
             children: [
               Expanded(

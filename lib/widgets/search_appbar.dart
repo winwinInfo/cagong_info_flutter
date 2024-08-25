@@ -19,7 +19,7 @@ class SearchAppBar extends StatefulWidget implements PreferredSizeWidget {
   _SearchAppBarState createState() => _SearchAppBarState();
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight * 2);
+  Size get preferredSize => Size.fromHeight(kToolbarHeight);
 }
 
 class _SearchAppBarState extends State<SearchAppBar> {
@@ -39,10 +39,10 @@ class _SearchAppBarState extends State<SearchAppBar> {
 
   @override
   Widget build(BuildContext context) {
-    return PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight * 2),
-        child: Container(
-          color: Colors.transparent,
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      flexibleSpace: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Row(
@@ -53,11 +53,21 @@ class _SearchAppBarState extends State<SearchAppBar> {
                     return SearchBar(
                       controller: _searchController,
                       constraints: BoxConstraints(
-                        minHeight: 48,
-                        maxHeight: 48,
+                        minHeight: 40,
+                        maxHeight: 40,
                       ),
-                      leading: Icon(Icons.search),
+                      leading: Icon(Icons.search, color: Colors.grey),
                       trailing: [],
+                      backgroundColor: MaterialStateProperty.all(Colors.white.withOpacity(0.8)),
+                      elevation: MaterialStateProperty.all(0),
+                      shape: MaterialStateProperty.all(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      padding: MaterialStateProperty.all(
+                        EdgeInsets.symmetric(horizontal: 16),
+                      ),
                       onTap: () {
                         controller.openView();
                         _searchController.clear();
@@ -68,12 +78,14 @@ class _SearchAppBarState extends State<SearchAppBar> {
                         controller.closeView(value);
                       },
                       hintText: '카페 검색',
+                      hintStyle: MaterialStateProperty.all(
+                        TextStyle(color: Colors.grey),
+                      ),
                     );
                   },
                   suggestionsBuilder: (context, controller) {
                     final query = controller.text.toLowerCase();
                     if (query.isEmpty) {
-                      //검색어가 없을 때 빈 리스트 반환
                       return [];
                     } else {
                       final filteredCafes = widget.cafes
@@ -118,11 +130,11 @@ class _SearchAppBarState extends State<SearchAppBar> {
               SizedBox(width: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(24),
+                  color: Colors.white.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: IconButton(
-                  icon: Icon(Icons.filter_list),
+                  icon: Icon(Icons.filter_list, color: Colors.grey),
                   onPressed: widget.onFilterPressed,
                 ),
               ),
