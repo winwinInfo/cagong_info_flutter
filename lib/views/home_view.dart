@@ -19,7 +19,6 @@ class HomeView extends StatefulWidget {
 class HomeViewState extends State<HomeView> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   Cafe? _selectedCafe;
-  bool _isDrawerOpen = false;
 
   @override
   void initState() {
@@ -147,11 +146,3 @@ class HomeViewState extends State<HomeView> {
     );
   }
 
-  void _onBottomNavTap(int index) {
-    // TODO: 바텀 네비게이션 탭 처리 로직 구현
-  }
-
-  void _getCurrentLocation() {
-    // TODO: 현재 위치 가져오기 로직 구현
-  }
-}

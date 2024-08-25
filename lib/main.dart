@@ -5,9 +5,6 @@ import 'firebase_options.dart';
 import 'services/cafe_service.dart';
 import 'views/home_view.dart';
 import 'widgets/kakao_map.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-
-InAppLocalhostServer server = InAppLocalhostServer(port: 8080);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
